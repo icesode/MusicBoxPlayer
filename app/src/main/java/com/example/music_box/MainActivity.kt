@@ -11,15 +11,12 @@ import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.example.music_box.databinding.ActivityMainBinding
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding:ActivityMainBinding
-    private lateinit var mManager:MyService.MusicBinder
+    private lateinit var mManager:MusicService.MusicBinder
     private var musicList = mutableListOf<MusicInfo>()
     private lateinit var mlistAdapter: ListAdapter
     private lateinit var mListView: ListView
@@ -55,15 +52,15 @@ class MainActivity : AppCompatActivity() {
         // 切换到下一个播放模式
         when (currentPlayMode) {
             PlayMode.REPEAT_ALL -> {
-                mManager?.setPlayMode(MyService.PlayMode.SINGLE_LOOP)
+                mManager?.setPlayMode(MusicService.PlayMode.SINGLE_LOOP)
                 currentPlayMode = PlayMode.REPEAT_ONE
             }
             PlayMode.REPEAT_ONE -> {
-                mManager?.setPlayMode(MyService.PlayMode.SHUFFLE)
+                mManager?.setPlayMode(MusicService.PlayMode.SHUFFLE)
                 currentPlayMode = PlayMode.SHUFFLE
             }
             PlayMode.SHUFFLE ->{
-                mManager?.setPlayMode(MyService.PlayMode.LIST_LOOP)
+                mManager?.setPlayMode(MusicService.PlayMode.LIST_LOOP)
                 currentPlayMode = PlayMode.REPEAT_ALL
             }
         }
@@ -101,7 +98,7 @@ class MainActivity : AppCompatActivity() {
                     e.printStackTrace()
                 }
             }
-            kotlinx.coroutines.delay(100) // 每秒执行一次更新
+            kotlinx.coroutines.delay(100) // 每秒执行十次更新
         }
     }
 
@@ -177,7 +174,7 @@ class MainActivity : AppCompatActivity() {
 
     private val connection=object:ServiceConnection{
         override fun onServiceConnected(name:ComponentName?, service: IBinder?) {
-            mManager=service as MyService.MusicBinder
+            mManager=service as MusicService.MusicBinder
             isServiceBound=true
             initializeUI()
         }
@@ -189,7 +186,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun bindMusicService() {
-        val intent = Intent(this, MyService::class.java)
+        val intent = Intent(this, MusicService::class.java)
         bindService(intent, connection, Context.BIND_AUTO_CREATE)
     }
 
@@ -200,22 +197,22 @@ class MainActivity : AppCompatActivity() {
                 when (command) {
                     "PLAY" -> {
                         // 处理播放按钮点击
-                        Log.e("BroadReceiver","onReceive里面的play")
+//                        Log.e("BroadReceiver","onReceive里面的play")
                         updateState(STATUS_PLAY)
                     }
                     "PAUSE" -> {
                         // 处理暂停按钮点击
-                        Log.e("BroadReceiver","onReceive里面的pause")
+//                        Log.e("BroadReceiver","onReceive里面的pause")
                         updateState(STATUS_PLAY)
                     }
                     "NEXT" -> {
                         // 处理下一首按钮点击
-                        Log.e("BroadReceiver","onReceive里面的next")
+//                        Log.e("BroadReceiver","onReceive里面的next")
                         updateState(STATUS_NEXT)
                     }
                     "PREVIOUS" -> {
                         // 处理上一首按钮点击
-                        Log.e("BroadReceiver","onReceive里面的previous")
+//                        Log.e("BroadReceiver","onReceive里面的previous")
                         updateState(STATUS_PREV)
                     }
 
@@ -254,9 +251,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initializeUI() {
-            // 此时可以安全地使用mManager
-            // 进行其他初始化工作
-
 
         listTitle = findViewById(R.id.music_list_title)
             playingName = findViewById(R.id.music_name)
@@ -327,5 +321,6 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         unregisterReceiver(controlReceiver)
+        coroutineScope.cancel()
     }
 }

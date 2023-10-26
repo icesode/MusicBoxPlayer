@@ -19,12 +19,10 @@ import android.widget.RemoteViews
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.*
 import java.io.IOException
 
-class MyService : Service() {
+class MusicService : Service() {
 
     private val musicList = mutableListOf<MusicInfo>()
     private var random = java.util.Random(System.currentTimeMillis())
@@ -38,7 +36,6 @@ class MyService : Service() {
     var completed = false
     private var context=MyApplication.context
     private lateinit var playButtonId:TextView
-//    val musicProgressLiveData = MutableLiveData<MusicProgress>()
     private val serviceScope = CoroutineScope(Dispatchers.Main)
     enum class PlayMode {
         LIST_LOOP,
@@ -79,26 +76,26 @@ class MyService : Service() {
         }
     }
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
-        Log.e("MyService", "onStartCommand executed")
+//        Log.e("MyService", "onStartCommand executed")
         when (intent.action) {
             "PLAY" -> {
                 // 处理播放操作
 //                mBinder.Play()
                 sendControlCommand("PLAY")
-                Log.e("MyService", "onStartCommand里的Play")
+//                Log.e("MyService", "onStartCommand里的Play")
             }
             "PAUSE" -> {
                 // 处理暂停操作
 //                mBinder.Pause()
                 sendControlCommand("PAUSE")
-                Log.e("MyService", "onStartCommand里的PAUSE")
+//                Log.e("MyService", "onStartCommand里的PAUSE")
             }
             "PREVIOUS" -> {
 //                mBinder.setCurrentIndex(currentIndex-1)
                 // 处理上一首操作
 //                mBinder.playPrevious()
                 sendControlCommand("PREVIOUS")
-                Log.e("MyService", "onStartCommand里的PREVIOUS,currentIndex=${currentIndex}")
+//                Log.e("MyService", "onStartCommand里的PREVIOUS,currentIndex=${currentIndex}")
             }
             "NEXT" -> {
                 // 处理下一首操作
@@ -106,7 +103,7 @@ class MyService : Service() {
 //                mBinder.setCurrentIndex(currentIndex+1)
 //                mBinder.PlayNext()
                 sendControlCommand("NEXT")
-                Log.e("MyService", "onStartCommand里的NEXT,currentIndex=${currentIndex}")
+//                Log.e("MyService", "onStartCommand里的NEXT,currentIndex=${currentIndex}")
             }
             else -> {
                 // 处理其他操作或默认操作
@@ -125,10 +122,6 @@ class MyService : Service() {
 
 
     inner class MusicBinder() : Binder() {
-
-//        fun getMusicProgressLiveData(): LiveData<MusicProgress> {
-//            return musicProgressLiveData
-//        }
 
         fun setPlayMode(mode: PlayMode) {
             playMode = mode
@@ -230,23 +223,23 @@ class MyService : Service() {
 //            Log.d("MyService", "updateNotificationWithControls executed")
             val musicInfo = getMusicInfo(getCurrentIndex())
 
-            val playIntent = Intent(context, MyService::class.java)
+            val playIntent = Intent(context, MusicService::class.java)
             playIntent.action = "PLAY"
             val playPendingIntent = PendingIntent.getService(context, 0, playIntent,  PendingIntent.FLAG_IMMUTABLE)
 
-            val pauseIntent = Intent(context, MyService::class.java)
+            val pauseIntent = Intent(context, MusicService::class.java)
             pauseIntent.action = "PAUSE"
             val pausePendingIntent = PendingIntent.getService(context, 1, pauseIntent,  PendingIntent.FLAG_IMMUTABLE)
 
-            val previousIntent = Intent(context, MyService::class.java)
+            val previousIntent = Intent(context, MusicService::class.java)
             previousIntent.action = "PREVIOUS"
             val previousPendingIntent = PendingIntent.getService(context, 2, previousIntent,  PendingIntent.FLAG_IMMUTABLE)
 
-            val nextIntent = Intent(context, MyService::class.java)
+            val nextIntent = Intent(context, MusicService::class.java)
             nextIntent.action = "NEXT"
             val nextPendingIntent = PendingIntent.getService(context, 3, nextIntent,  PendingIntent.FLAG_IMMUTABLE)
 
-            val notificationLayout = RemoteViews(this@MyService.packageName, R.layout.notification_layout)
+            val notificationLayout = RemoteViews(this@MusicService.packageName, R.layout.notification_layout)
             notificationLayout.setTextViewText(R.id.notification_title, musicInfo.music_title)
             notificationLayout.setTextViewText(R.id.notification_artist, musicInfo.music_artist)
             notificationLayout.setProgressBar(R.id.notification_progress, getDuration(), getCurrentPosition(), false)
